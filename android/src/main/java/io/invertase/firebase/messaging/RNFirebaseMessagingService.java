@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.ComponentName;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.os.Build;
 
 import com.facebook.react.HeadlessJsTaskService;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -59,7 +60,16 @@ public class RNFirebaseMessagingService extends FirebaseMessagingService {
             RNFirebaseBackgroundMessagingService.class
           );
           headlessIntent.putExtra("message", message);
-          ComponentName name = this.getApplicationContext().startService(headlessIntent);
+
+          //startService would not work on version 8 and above. So instead we use startForegroundService
+          //startService would crash on app killed state
+          ComponentName name = null;
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            name = this.getApplicationContext().startForegroundService(headlessIntent);
+          } else {
+            name = this.getApplicationContext().startService(headlessIntent);
+          }
+          // ComponentName name = this.getApplicationContext().startService(headlessIntent);
           if (name != null) {
             HeadlessJsTaskService.acquireWakeLockNow(this.getApplicationContext());
           }
