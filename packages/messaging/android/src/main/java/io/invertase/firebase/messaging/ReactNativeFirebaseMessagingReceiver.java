@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.os.Build;
 
 import com.facebook.react.HeadlessJsTaskService;
 import com.google.firebase.messaging.RemoteMessage;
@@ -47,7 +48,15 @@ public class ReactNativeFirebaseMessagingReceiver extends BroadcastReceiver {
     try {
       Intent backgroundIntent = new Intent(context, ReactNativeFirebaseMessagingHeadlessService.class);
       backgroundIntent.putExtra("message", remoteMessage);
-      ComponentName name = context.startService(backgroundIntent);
+
+      ComponentName name = null;
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        name = context.startForegroundService(backgroundIntent);
+      } else {
+        name = context.startService(backgroundIntent);
+      }
+
+      // ComponentName name = context.startService(backgroundIntent);
       if (name != null) {
         HeadlessJsTaskService.acquireWakeLockNow(context);
       }
